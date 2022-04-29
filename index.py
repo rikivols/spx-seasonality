@@ -38,8 +38,8 @@ class Webpage:
     def start_server(self):
         self.wait_to_start()
         # app.run_server(debug=True, use_reloader=False)
-        host, port = open_json('server_ip_port.json')
-        serve(app.server, host=host, port=port)
+        host_port = open_json('server_ip_port.json')
+        serve(app.server, host=host_port['ip'], port=host_port['port'])
 
     def make_page(self):
 
