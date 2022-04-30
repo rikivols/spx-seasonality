@@ -107,7 +107,7 @@ class Webpage:
             self.dropdown("Select Month", 'pick_month', [{"label": st, "value": st} for st in months], time_eastern()[0]),
             html.Div(id="table_daily", style={'width': '80%', **table_center}),
 
-            html.P('@Richard Volcko', style={'text-align': 'right'}),
+            html.P('@Richard Volčko', style={'text-align': 'right'}),
 
         ])
 
