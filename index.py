@@ -15,6 +15,7 @@ from waitress import serve
 
 server = Flask(__name__)
 server.secret_key = 'test'
+test = 0
 app = dash.Dash(__name__, server=server)
 
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -37,9 +38,12 @@ class Webpage:
 
     def start_server(self):
         self.wait_to_start()
-        # app.run_server(debug=True, use_reloader=False)
-        host_port = open_json('server_ip_port.json')
-        serve(app.server, host=host_port['ip'], port=host_port['port'])
+        if test:
+            app.run_server(debug=True, use_reloader=False)
+        else:
+            # THIS WILL MAKE SITE GO LIVE
+            host_port = open_json('server_ip_port.json')
+            serve(app.server, host=host_port['ip'], port=host_port['port'])
 
     def make_page(self):
 
@@ -131,7 +135,7 @@ class Webpage:
         data = df.to_dict('records')
 
         columns = [{"name": i, "id": i, } for i in df.columns]
-        current_page = (time_eastern()[1] + 1) // 12 if daily_month == time_eastern()[0] else 0
+        current_page = (int(time_eastern()[1]) + 1) // 12 if daily_month == time_eastern()[0] else 0
         return dt.DataTable(data=data, columns=columns,
                             style_cell={'textAlign': 'center', 'border': '1px solid grey'},
                             style_data_conditional=[

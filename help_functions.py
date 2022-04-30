@@ -50,8 +50,8 @@ def time_eastern():
     utc_now = pytz.utc.localize(datetime.datetime.utcnow())
     p_n = utc_now.astimezone(pytz.timezone("US/Eastern"))
 
-    return p_n.strftime('%b'), p_n.day, (p_n + relativedelta(months=1)).strftime('%b'), \
-           (p_n + relativedelta(days=1)).strftime('%b'), (p_n + relativedelta(days=1)).day
+    return p_n.strftime('%b'), p_n.strftime('%d'), (p_n + relativedelta(months=1)).strftime('%b'), \
+           (p_n + relativedelta(days=1)).strftime('%b'), (p_n + relativedelta(days=1)).day, p_n.month
 
 
 def debug_msg(msg, debug=1, also_milis=True):

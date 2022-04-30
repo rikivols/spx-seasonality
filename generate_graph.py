@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 import datetime
 from calendar import monthrange
 import time
+from help_functions import *
 
 
 class SpxData:
@@ -80,11 +81,19 @@ class SpxData:
         df_graph.index = pd.to_datetime(df_graph.index, format='%m-%d', errors='coerce')
         df_ma = df_graph.rolling(window=7).mean()
 
+        cur_day = int(time_eastern()[1])
+        cur_month = time_eastern()[5]
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df_graph.index, y=df_graph.values, mode='lines', name='raw',
                                  line={'color': 'firebrick', 'width': 1, 'dash': 'dash'}))
         fig.add_trace(go.Scatter(x=df_ma.index, y=df_ma.values, mode='lines', name='MA',
                                  line={'color': 'blue', 'width': 2}))
+        val = df_ma[(df_ma.index.month == cur_month) & (df_ma.index.day == cur_day)].values
+        fig.add_trace(go.Scatter(x=[datetime.datetime(year=1900, month=cur_month, day=cur_day)],
+                                 y=df_ma[(df_ma.index.month == cur_month) & (df_ma.index.day == cur_day)].values,
+                                 mode='markers + text', name='best', marker=dict(color='blue', size=15, symbol='x'),
+                                 showlegend=False, text=str(round(val[0]*100, 1)) + '%', textposition="top left",
+                                 textfont={'size': 18}))
         fig.update_layout(xaxis=dict(tickformat="%d-%B", nticks=12, gridcolor='LightPink'))
         fig.update_layout(yaxis=dict(tickformat=".1%"))
         fig.update_layout(title=f'Showing SPX cumulative performance over the last <b>{self.years} years</b>', title_x=0.5)
