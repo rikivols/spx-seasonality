@@ -17,6 +17,7 @@ server = Flask(__name__)
 server.secret_key = 'test'
 test = 0
 app = dash.Dash(__name__, server=server)
+app.title = 'Market seasonality - trading data'
 
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 text_center = {'text-align': 'center'}
