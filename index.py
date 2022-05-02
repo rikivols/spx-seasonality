@@ -11,19 +11,12 @@ import pytz
 import traceback
 import threading
 from waitress import serve
-try:
-    from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
-except ImportError:
-    from cherrypy.wsgiserver import CherryPyWSGIServer as WSGIServer, WSGIPathInfoDispatcher as PathInfoDispatcher
-
 
 
 server = Flask(__name__)
 server.secret_key = 'test'
 test = 0
 app = dash.Dash(__name__, server=server)
-d = PathInfoDispatcher({'/': app})
-server = WSGIServer(('162.246.18.202', 80), d)
 
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 text_center = {'text-align': 'center'}
