@@ -186,7 +186,7 @@ def main(years):
     # print(monthly_data)
     # print('DAILY')
     # print(daily_data)
-    print('loop took:', round(time.time() - st, 2))
+    # print('loop took:', round(time.time() - st, 2))
 
     return fig, monthly_data, daily_data
 
