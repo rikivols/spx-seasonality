@@ -46,12 +46,14 @@ def get_time_in_sk(raw=False, also_hours=True, get_milis=False):
     return date_now
 
 
-def time_eastern():
+def time_eastern(raw=False):
     utc_now = pytz.utc.localize(datetime.datetime.utcnow())
     p_n = utc_now.astimezone(pytz.timezone("US/Eastern"))
 
+    if raw:
+        return p_n
     return p_n.strftime('%b'), p_n.strftime('%d'), (p_n + relativedelta(months=1)).strftime('%b'), \
-           (p_n + relativedelta(days=1)).strftime('%b'), (p_n + relativedelta(days=1)).day, p_n.month
+           (p_n + relativedelta(days=1)).strftime('%b'), (p_n + relativedelta(days=1)).strftime('%d'), p_n.month
 
 
 def debug_msg(msg, debug=1, also_milis=True):

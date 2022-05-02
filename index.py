@@ -43,7 +43,7 @@ class Webpage:
         else:
             # THIS WILL MAKE SITE GO LIVE
             host_port = open_json('server_ip_port.json')
-            serve(app.server, host=host_port['ip'], port=host_port['port'])
+            serve(app.server, host=host_port['ip'], port=host_port['port'], url_scheme='https')
 
     def make_page(self):
 
@@ -66,16 +66,15 @@ class Webpage:
             html.P('Table containing averaged SPX performance over the last 50, 40, 30, 20, 10 years. '
                    'Each value is calculated as close of the last month and close of the current month.',
                    style=text_center),
-            self.dropdown("select month", 'this_next_month', [time_eastern()[0], time_eastern()[2]],
-                          time_eastern()[0]),
+            self.dropdown("select month", 'this_next_month'),
             html.Div(id="monthly_first", style={'width': '80%', **table_center}),
             html.Br(),
 
             # FIRST GRAPH DAILY
             html.H2("Today's SPX seasonality", style=text_center),
             html.P('Each value is calculated as close of the last day and close of the current day', style=text_center),
-            self.dropdown("select day", 'this_next_day', [f'{time_eastern()[0]}-{time_eastern()[1]}',
-                          f'{time_eastern()[3]}-{time_eastern()[4]}'], f'{time_eastern()[0]}-{time_eastern()[1]}'),
+            self.dropdown("select day", 'this_next_day'),
+
             html.Div(id="daily_first", style={'width': '80%', **table_center}),
             html.Br(),
             html.Br(),
@@ -104,22 +103,28 @@ class Webpage:
             html.H2(id='daily_title', style=text_center),
             html.P('Table containing averaged SPX performance over the selected years grouped by every day. Each value is '
                    'calculated as close of the last day and close of the current day', style=text_center),
-            self.dropdown("Select Month", 'pick_month', [{"label": st, "value": st} for st in months], time_eastern()[0]),
+            self.dropdown("Select Month", 'pick_month', [{"label": st, "value": st} for st in months]),
             html.Div(id="table_daily", style={'width': '80%', **table_center}),
 
             html.P('@Richard Volčko', style={'text-align': 'right'}),
 
         ])
 
-    def dropdown(self, txt, _id, options, value):
+    def dropdown(self, txt, _id, options=None, value=None):
+        args = {'id': _id,
+                'multi': False,
+                'searchable': False,
+                'style': {'width': '40%', 'verticalAlign': "middle"}}
+        if options:
+            args['options'] = options
+        if value:
+            args['value'] = value
+
         return html.Div(
                 [
                     html.Div([html.H4(txt,
                                       style={'margin-right': '1.5em', 'margin-top': "1.2em"})]),
-                    dcc.Dropdown(id=_id,
-                                 options=options,
-                                 multi=False, value=value, searchable=False,
-                                 style={'width': '40%', 'verticalAlign': "middle"})
+                    dcc.Dropdown(**args)
                 ],
                 style=dropdown_center
             )
@@ -167,7 +172,7 @@ class Webpage:
                      )
 
     def update(self, this_next_month, this_next_day, option, daily_month):
-        print(f'{get_time_in_sk()} OPTION:', option)
+        debug_msg(f'OPTION: {option}')
         monthly_transform = self.transform_pandas(monthly_data[option])
         daily_transform = self.transform_pandas(daily_data[option], daily_month)
 
@@ -177,11 +182,36 @@ class Webpage:
         return monthly_first, daily_first, monthly_transform, daily_transform
 
 
+""" UPDATE HTML DROPDOWNS """
+
+@app.callback(
+    Output('this_next_month', 'options'),
+    Output('this_next_day', 'options'),
+    Output('this_next_month', 'value'),
+    Output('this_next_day', 'value'),
+    Output('pick_month', 'value'),
+    [Input('this_next_month', 'value'),
+     Input('this_next_day', 'value'),
+     Input('pick_month', 'value')
+     ]
+)
+def update_date_dropdown(*inp):
+    outs = [
+        [time_eastern()[0], time_eastern()[2]],
+        [f'{time_eastern()[0]}-{time_eastern()[1]}', f'{time_eastern()[3]}-{time_eastern()[4]}']
+    ]
+    if not inp[0]:
+        inp = [i[0] for i in outs]
+        inp.append(time_eastern()[0])
+
+    return *[[{'label': i, 'value': i} for i in out] for out in outs], *inp
+
+
 """ Connect Plotly and Dash """
 
 @app.callback(
     [
-        Output(component_id='spx_graph', component_property='figure'),
+        Output('spx_graph', 'figure'),
         Output('monthly_first', 'children'),
         Output('daily_first', 'children'),
         Output('table_monthly', 'children'),

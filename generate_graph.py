@@ -1,3 +1,5 @@
+import traceback
+
 import pandas as pd
 import yfinance as yf
 import matplotlib.pyplot as plt
@@ -11,20 +13,45 @@ from help_functions import *
 
 
 class SpxData:
+    symbol = '^GSPC'
 
     def __init__(self, years):
         self.years = years
-        nw = datetime.datetime.now()
+        nw = datetime.datetime.now() - datetime.timedelta(days=1)
+        nw = datetime.datetime(year=nw.year, month=nw.month, day=nw.day)
         past = datetime.datetime(year=nw.year - self.years, month=nw.month, day=nw.day)
         self.df = self.download_spx(past, nw)
 
-    @staticmethod
-    def download_spx(start, end):
-        return yf.download('^GSPC',
-                           start=start,
-                           end=end,
-                           progress=False,
-                           )
+    def download_spx(self, start, end):
+        try:
+            res = yf.download(self.symbol,
+                               start=start,
+                               end=end,
+                               progress=False,
+                               )
+
+            if (end - start).days >= 49 * 365:
+                self.store_prices(res, start)
+        except Exception:
+            traceback.print_exc()
+            debug_msg('Downloading data failed, loading backup...')
+            res = self.load_backup(start, end)
+
+        return res
+
+    def store_prices(self, df, start):
+        # store also first day of the year
+        res = self.get_last_close(start.year, raw=True)
+        df = pd.concat([res, df])
+        df.to_csv(f'logs/{self.symbol}')
+
+    def load_backup(self, start, end):
+        res = pd.read_csv(f'logs/{self.symbol}')
+        res['Date'] = pd.to_datetime(res['Date'], format='%Y-%m-%d', errors='coerce')
+        res = res.set_index('Date', drop=True)
+
+        res = res[(res.index >= start) & (res.index <= end)]
+        return res
 
     @staticmethod
     def perc_increase(original, inc):
@@ -40,24 +67,30 @@ class SpxData:
 
         return pos / len(incs.values) * 100
 
-    def get_last_close(self, yr, month=0):
+    def get_last_close(self, yr, month=0, raw=False):
         if month:
             if month == 1:
                 yr -= 1
                 month = 13
             day = monthrange(yr, month-1)[-1]
-            start_str = f'{yr}-{month-1}-{day-3}'
+            start_str = datetime.datetime(year=yr, month=month-1, day=day-3)
             if month == 13:
                 yr += 1
                 month = 12
-            end_str = f'{yr}-{month}-01'
+            end_str = datetime.datetime(year=yr, month=month, day=1)
+
         else:
-            start_str = f'{yr-1}-12-27'
-            end_str = f'{yr}-01-01'
+            start_str = datetime.datetime(year=yr-1, month=12, day=27)
+            end_str = datetime.datetime(year=yr, month=1, day=1)
 
         sp = self.download_spx(start_str, end_str)
+        if raw:
+            return sp
 
-        return sp.iloc[-1]['Adj Close']
+        try:
+            return sp.iloc[-1]['Adj Close']
+        except IndexError:
+            return 0
 
     def prepare_graph(self):
 
@@ -104,24 +137,29 @@ class SpxData:
         """
         Calculate monthly percentage gains (close price of previous month and current month) and the end of current month
         """
-        tm = time.time()
         monthly_returns = {}
         last_close = self.get_last_close(self.df.index[0].year, self.df.index[0].month)
+        time_now = time_eastern(True)
 
         self.df['last_month_day'] = 0
         for i in range(len(self.df) - 1):
             # get closing value of last year
             row = self.df.iloc[i]
             ind = row.name
+            next_row_ind = self.df.iloc[i + 1].name
             adj_close = row['Adj Close']
 
             if f'{ind.month}_{ind.year}' not in monthly_returns:
                 monthly_returns[f'{ind.month}_{ind.year}'] = last_close
 
-            if self.df.iloc[i + 1].name.month != ind.month:
+            # dont count last month
+            if next_row_ind.month != ind.month and not (next_row_ind.month == time_now.month and next_row_ind.year == time_now.year):
                 self.df.loc[ind, 'last_month_day'] = 1
 
             last_close = adj_close
+
+        if f'{time_now.month}_{time_now.year}' not in monthly_returns:
+            monthly_returns[f'{time_now.month}_{time_now.year}'] = last_close
 
         self.df['monthly_increase'] = self.df.apply(
             lambda row: self.perc_increase(monthly_returns[f'{row.name.month}_{row.name.year}'], row['Adj Close']), axis=1)
@@ -186,7 +224,7 @@ def main(years):
     # print(monthly_data)
     # print('DAILY')
     # print(daily_data)
-    print('loop took:', round(time.time() - st, 2))
+    # print('loop took:', round(time.time() - st, 2))
 
     return fig, monthly_data, daily_data
 
