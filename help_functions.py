@@ -9,13 +9,13 @@ from dateutil.relativedelta import relativedelta
 
 
 def re_find(pt1, pt2, txt):
-    return re.findall(pt1 + r'(.*?)' + pt2, txt)[0]
+    return re.findall(pt1 + r"(.*?)" + pt2, txt)[0]
 
 
 def convert_timestamp(tm):
-    """ Converts timestamp to datetime in SK """
+    """Converts timestamp to datetime in SK"""
     res = datetime.datetime.fromtimestamp(tm, tz=pytz.timezone("Europe/Bratislava"))
-    return res.strftime('%Y-%m-%d %H:%M:%S.%f')
+    return res.strftime("%Y-%m-%d %H:%M:%S.%f")
 
 
 def get_time_in_sk(raw=False, also_hours=True, get_milis=False):
@@ -31,14 +31,14 @@ def get_time_in_sk(raw=False, also_hours=True, get_milis=False):
     p_n = utc_now.astimezone(pytz.timezone("Europe/Bratislava"))
 
     if also_hours:
-        date_format = '%Y-%m-%d %H:%M:%S'
+        date_format = "%Y-%m-%d %H:%M:%S"
         if get_milis:
-            date_format += '.%f'
+            date_format += ".%f"
         date_now = p_n.strftime(date_format)
         p_n = datetime.datetime.strptime(date_now, date_format)
     else:
-        date_now = p_n.strftime('%Y-%m-%d')
-        p_n = datetime.datetime.strptime(date_now, '%Y-%m-%d')
+        date_now = p_n.strftime("%Y-%m-%d")
+        p_n = datetime.datetime.strptime(date_now, "%Y-%m-%d")
 
     if raw:
         return p_n
@@ -52,18 +52,24 @@ def time_eastern(raw=False):
 
     if raw:
         return p_n
-    return p_n.strftime('%b'), p_n.strftime('%d'), (p_n + relativedelta(months=1)).strftime('%b'), \
-           (p_n + relativedelta(days=1)).strftime('%b'), (p_n + relativedelta(days=1)).strftime('%d'), p_n.month
+    return (
+        p_n.strftime("%b"),
+        p_n.strftime("%d"),
+        (p_n + relativedelta(months=1)).strftime("%b"),
+        (p_n + relativedelta(days=1)).strftime("%b"),
+        (p_n + relativedelta(days=1)).strftime("%d"),
+        p_n.month,
+    )
 
 
 def debug_msg(msg, debug=1, also_milis=True):
-    str_ = f'[DEBUG MSG {get_time_in_sk(get_milis=also_milis)}] {msg}'
+    str_ = f"[DEBUG MSG {get_time_in_sk(get_milis=also_milis)}] {msg}"
     if debug:
         print(str_)
 
 
 def error_msg(msg):
-    str_ = f'[ERROR {get_time_in_sk(get_milis=True)}] {msg} {traceback.format_exc()}'
+    str_ = f"[ERROR {get_time_in_sk(get_milis=True)}] {msg} {traceback.format_exc()}"
     print(str_)
 
 
@@ -73,11 +79,11 @@ def store_dump(msg):
 
 
 def json_dump(path, content, indent=False):
-    """ handling of writing into json file faster and more effectively """
+    """handling of writing into json file faster and more effectively"""
 
     for _ in range(30):
         try:
-            with open(f'{path}', 'w', encoding='utf-8') as f:
+            with open(f"{path}", "w", encoding="utf-8") as f:
                 if indent:
                     json.dump(content, f, indent=indent)
                 else:
@@ -89,12 +95,12 @@ def json_dump(path, content, indent=False):
 
 
 def file_append(path, content):
-    with open(f'{path}', 'a', encoding='utf-8') as f:
+    with open(f"{path}", "a", encoding="utf-8") as f:
         f.write(f"{content}\n")
 
 
 def file_write(path, content):
-    with open(f'{path}', 'w', encoding='utf-8') as f:
+    with open(f"{path}", "w", encoding="utf-8") as f:
         f.write(content)
 
 
@@ -117,12 +123,12 @@ def open_json(path, default=None, create_new=False):
         res = {}
     for _ in range(30):
         try:
-            with open(f'{path}', 'r', encoding='utf-8') as f:
+            with open(f"{path}", "r", encoding="utf-8") as f:
                 res = json.load(f)
             break
         except FileNotFoundError:
             if create_new:
-                with open(f'{path}', 'w', encoding='utf-8') as f:
+                with open(f"{path}", "w", encoding="utf-8") as f:
                     json.dump(res, f)
             # else:
             #     print('open json FILENOTFOUND:', path)
@@ -131,18 +137,18 @@ def open_json(path, default=None, create_new=False):
             pass
         time.sleep(0.1)
     else:
-        print('open json failed:', path)
+        print("open json failed:", path)
     return res
 
 
 def open_file(path, default=False):
-    res = ''
+    res = ""
     if default:
         res = default
 
     for _ in range(30):
         try:
-            with open(f'{path}', 'r', encoding='utf-8') as f:
+            with open(f"{path}", "r", encoding="utf-8") as f:
                 res = f.read()
             break
         except FileNotFoundError:
@@ -152,17 +158,17 @@ def open_file(path, default=False):
         time.sleep(0.1)
 
     else:
-        print('open file failed:', path)
+        print("open file failed:", path)
 
     return res
 
 
 def format_borders(msg):
-    brd = "-"*50
-    return f'\n{brd}\n{msg}\n{brd}\n'
+    brd = "-" * 50
+    return f"\n{brd}\n{msg}\n{brd}\n"
 
 
 def arr_avg(arr):
     if len(arr) == 0:
         return 0
-    return round(sum(arr)/len(arr), 3)
+    return round(sum(arr) / len(arr), 3)
