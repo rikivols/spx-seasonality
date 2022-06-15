@@ -13,7 +13,7 @@ from waitress import serve
 
 server = Flask(__name__)
 server.secret_key = "test"
-test = 1
+test = 0
 app = dash.Dash(__name__, server=server)
 app.title = "Market seasonality - trading data"
 
