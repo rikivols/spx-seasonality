@@ -22,6 +22,7 @@ To start the import process of products you can easily do it by running the comm
 python index.py
 ```
 ## Configuration
+* create config.json file with the structure of the config-template.json
 #### For running website locally: 
 * Change the variable test in the index.py to 1
 * Run the index and go to the url http://127.0.0.1:8050/
@@ -29,3 +30,10 @@ python index.py
 * You need a WSGI server compatible with waitress
 * Fill in server_ip_port.json with your IP and port
 * Make sure your port is not blocked by the firewall
+
+## How the website looks like:
+![img.png](assets/img.png)
+
+![img_1.png](assets/img_1.png)
+
+![img_2.png](assets/img_2.png)

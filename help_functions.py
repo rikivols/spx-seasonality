@@ -172,3 +172,5 @@ def arr_avg(arr):
     if len(arr) == 0:
         return 0
     return round(sum(arr) / len(arr), 3)
+
+

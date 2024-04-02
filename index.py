@@ -8,14 +8,17 @@ from help_functions import *
 from dash import dash_table as dt
 import traceback
 import threading
+import os
 from waitress import serve
 
 
 server = Flask(__name__)
 server.secret_key = "test"
-test = 0
+config = open_json("config.json")
+
 app = dash.Dash(__name__, server=server)
 app.title = "Market seasonality - trading data"
+logs_directory = "logs"
 
 months = [
     "Jan",
@@ -53,15 +56,14 @@ class Webpage:
 
     def start_server(self):
         self.wait_to_start()
-        if test:
+        if config["is_test"]:
             app.run_server(debug=True, use_reloader=False)
         else:
             # THIS WILL MAKE SITE GO LIVE
-            host_port = open_json("server_ip_port.json")
             serve(
                 app.server,
-                host=host_port["ip"],
-                port=host_port["port"],
+                host=config["ip"],
+                port=config["port"],
                 url_scheme="https",
             )
 
@@ -78,6 +80,9 @@ class Webpage:
                         html.Br(),
                         "This site is updated daily and always has the newest information. The point of this project is to "
                         "make a better daily trading decisions based on the past data.",
+                        html.Br(),
+                        "The site tells you the average % monthly gain and daily gain, so you can estimate how the market will behave at a given day."
+                        "It has data going all the way tot he past 50 years.",
                         html.Br(),
                         "The first section contains this month/day data and second section has all the historical data.",
                     ],
@@ -364,6 +369,10 @@ def datas_thread():
 
 
 if __name__ == "__main__":
+
+    if not os.path.exists(logs_directory):
+        os.makedirs(logs_directory)
+
     safe = 0
     threading.Thread(target=datas_thread, daemon=True).start()
 
